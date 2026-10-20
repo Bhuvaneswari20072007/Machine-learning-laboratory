@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Time → Exam Score Prediction | ML Lab Mini-Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Top Banner & Header -->
+    <header class="academic-header">
+        <div class="container header-container">
+            <div class="lab-badge">MACHINE LEARNING LABORATORY MINI-PROJECT</div>
+            <h1 class="project-title">Study Time &rarr; Exam Score Prediction</h1>
+            <p class="project-subtitle">Supervised Multiple Linear Regression Model for Student Performance Prediction</p>
+            <div class="header-tags">
+                <span class="tag tag-blue">Regression Task</span>
+                <span class="tag tag-green">Linear Regression (OLS)</span>
+                <span class="tag tag-purple">4 Input Features &rarr; 1 Continuous Target</span>
+                <span class="tag tag-amber">SQLite3 Persistent History</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="sticky-nav">
+        <div class="container nav-container">
+            <span class="nav-brand">ML Exam Lab</span>
+            <div class="nav-links">
+                <a href="#overview" class="nav-link active">Overview</a>
+                <a href="#step1" class="nav-link">Step 1: Dataset</a>
+                <a href="#step2" class="nav-link">Step 2: Preprocessing</a>
+                <a href="#step3" class="nav-link">Step 3: EDA</a>
+                <a href="#step4" class="nav-link">Step 4: Training</a>
+                <a href="#step5" class="nav-link">Step 5: Prediction</a>
+                <a href="#step6" class="nav-link">Step 6: Evaluation</a>
+                <a href="#step7" class="nav-link">Step 7: History</a>
+                <a href="#result" class="nav-link">Result</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container main-content">
+
+        <!-- DASHBOARD SUMMARY CARDS -->
+        <section id="overview" class="section-card dashboard-overview">
+            <h2 class="section-heading">Project Overview &amp; ML Pipeline</h2>
+            <p class="section-desc">
+                This academic laboratory system implements a full end-to-end Machine Learning pipeline to predict a student's numerical examination score based on their daily study duration, class attendance, previous academic score, and sleep routine.
+            </p>
+
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Dataset Records</div>
+                    <div class="summary-value" id="sum-records">200</div>
+                    <div class="summary-sub">Student Samples</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Input Features</div>
+                    <div class="summary-value" id="sum-features">4</div>
+                    <div class="summary-sub">Academic &amp; Habit Indicators</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">ML Model</div>
+                    <div class="summary-value highlight-text" id="sum-model">Linear Regression</div>
+                    <div class="summary-sub">Ordinary Least Squares</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Train / Test Split</div>
+                    <div class="summary-value" id="sum-split">80 / 20</div>
+                    <div class="summary-sub">160 Train / 40 Test</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Target Variable</div>
+                    <div class="summary-value" id="sum-target">Exam Score</div>
+                    <div class="summary-sub">Continuous (0 &ndash; 100)</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">System Status</div>
+                    <div class="summary-value status-active" id="sum-status">Trained &amp; Ready</div>
+                    <div class="summary-sub">Local Offline Model</div>
+                </div>
+            </div>
+
+            <!-- Pipeline Flow Diagram -->
+            <div class="pipeline-flow">
+                <div class="flow-step"><span class="step-num">1</span> Problem Definition</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">2</span> Dataset Collection</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">3</span> Data Preprocessing</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">4</span> EDA</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">5</span> 80/20 Train-Test Split</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">6</span> Model Training</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">7</span> Evaluation</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step"><span class="step-num">8</span> Prediction &amp; DB Log</div>
+            </div>
+        </section>
+
+        <!-- STEP 1 — DATASET / INPUT OVERVIEW -->
+        <section id="step1" class="section-card step-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 1</span>
+                <div>
+                    <h2 class="step-title">Dataset &amp; Input Data Overview</h2>
+                    <p class="step-subtitle">Loading the student dataset containing academic inputs and target exam scores.</p>
+                </div>
+            </div>
+
+            <div class="info-callout">
+                <strong>ML Lab Objective:</strong> The system takes four input features (<em>Study Hours, Attendance %, Previous Score, Sleep Hours</em>) to learn the mapping function for predicting the continuous numerical target (<em>Exam Score</em>).
+            </div>
+
+            <!-- Features Information Grid -->
+            <div class="feature-info-grid">
+                <div class="feature-card">
+                    <div class="feature-card-header">1. Study Hours</div>
+                    <div class="feature-card-body">
+                        <span class="badge-type">Numerical (Float)</span>
+                        <p>Daily dedicated study time in hours. Primary predictor of performance.</p>
+                        <small><strong>Range:</strong> 1.0 &ndash; 10.0 hrs</small>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-header">2. Attendance</div>
+                    <div class="feature-card-body">
+                        <span class="badge-type">Numerical (Float)</span>
+                        <p>Overall classroom lecture attendance percentage.</p>
+                        <small><strong>Range:</strong> 60.0% &ndash; 99.0%</small>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-header">3. Previous Score</div>
+                    <div class="feature-card-body">
+                        <span class="badge-type">Numerical (Float)</span>
+                        <p>Score obtained in the prior semester/preparatory examination.</p>
+                        <small><strong>Range:</strong> 40.0 &ndash; 98.0 marks</small>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-header">4. Sleep Hours</div>
+                    <div class="feature-card-body">
+                        <span class="badge-type">Numerical (Float)</span>
+                        <p>Average nightly sleep duration reflecting health and rest routine.</p>
+                        <small><strong>Range:</strong> 5.0 &ndash; 9.5 hrs</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta-pills">
+                <span class="meta-pill"><strong>File:</strong> data/student_exam_data.csv</span>
+                <span class="meta-pill"><strong>Total Records:</strong> <span id="dataset-total-rows">200</span></span>
+                <span class="meta-pill"><strong>Dataset Shape:</strong> <span id="dataset-shape">(200, 5)</span></span>
+                <span class="meta-pill"><strong>Target Variable:</strong> Exam_Score</span>
+            </div>
+
+            <!-- Sample Dataset Table -->
+            <div class="table-responsive">
+                <h4 class="table-title">First 10 Rows of Student Exam Dataset</h4>
+                <table class="lab-table" id="dataset-table">
+                    <thead>
+                        <tr>
+                            <th># Index</th>
+                            <th>Study Hours (hrs)</th>
+                            <th>Attendance (%)</th>
+                            <th>Previous Score</th>
+                            <th>Sleep Hours (hrs)</th>
+                            <th class="target-col">Exam Score (Target)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataset-tbody">
+                        <tr><td colspan="6" class="text-center">Loading dataset rows...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- STEP 2 — DATA PREPROCESSING -->
+        <section id="step2" class="section-card step-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 2</span>
+                <div>
+                    <h2 class="step-title">Data Preprocessing &amp; Cleaning</h2>
+                    <p class="step-subtitle">Missing value verification, data integrity check, and feature-target separation.</p>
+                </div>
+            </div>
+
+            <div class="preprocess-grid">
+                <!-- Missing Value Summary -->
+                <div class="card-box">
+                    <h3 class="box-title">Missing Values Check</h3>
+                    <div class="missing-stat-grid">
+                        <div class="missing-box">
+                            <span class="missing-label">Before Preprocessing</span>
+                            <span class="missing-val zero-val" id="missing-before-val">0 Missing</span>
+                            <small class="text-muted">Verified across all columns</small>
+                        </div>
+                        <div class="missing-box">
+                            <span class="missing-label">After Preprocessing</span>
+                            <span class="missing-val zero-val" id="missing-after-val">0 Missing</span>
+                            <small class="text-muted">Dataset 100% clean &amp; complete</small>
+                        </div>
+                    </div>
+                    <div class="cleaning-note">
+                        <strong>Integrity Status:</strong> No null or NaN values detected. Data types are verified as 64-bit floating point numbers suitable for matrix operations in OLS regression.
+                    </div>
+                </div>
+
+                <!-- Feature Separation -->
+                <div class="card-box">
+                    <h3 class="box-title">Feature &amp; Target Separation (X and y)</h3>
+                    <div class="matrix-split">
+                        <div class="matrix-item">
+                            <div class="matrix-header">Input Feature Matrix (X)</div>
+                            <div class="matrix-body">
+                                <code>X = [Study_Hours, Attendance, Previous_Score, Sleep_Hours]</code>
+                                <div class="matrix-dim">Shape: <span id="x-shape">(200, 4)</span></div>
+                            </div>
+                        </div>
+                        <div class="matrix-item">
+                            <div class="matrix-header">Target Vector (y)</div>
+                            <div class="matrix-body">
+                                <code>y = [Exam_Score]</code>
+                                <div class="matrix-dim">Shape: <span id="y-shape">(200,)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descriptive Statistics Table -->
+            <div class="table-responsive" style="margin-top: 1.5rem;">
+                <h4 class="table-title">Statistical Summary (Descriptive Statistics)</h4>
+                <table class="lab-table stats-table" id="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Statistic</th>
+                            <th>Study_Hours</th>
+                            <th>Attendance</th>
+                            <th>Previous_Score</th>
+                            <th>Sleep_Hours</th>
+                            <th class="target-col">Exam_Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-tbody">
+                        <tr><td colspan="6" class="text-center">Loading descriptive statistics...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- STEP 3 — EXPLORATORY DATA ANALYSIS -->
+        <section id="step3" class="section-card step-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 3</span>
+                <div>
+                    <h2 class="step-title">Exploratory Data Analysis (EDA)</h2>
+                    <p class="step-subtitle">Visualizing feature relationships, scatter plots, and correlation matrix.</p>
+                </div>
+            </div>
+
+            <!-- Primary Highlight Plot -->
+            <div class="primary-plot-container">
+                <div class="plot-box highlight-plot">
+                    <div class="plot-header">
+                        <h3>Primary Graph: Study Hours vs. Exam Score</h3>
+                        <span class="badge-highlight">Key Feature</span>
+                    </div>
+                    <img id="plot-study-exam" src="/static/plots/study_vs_exam.png" alt="Study Hours vs Exam Score Scatter Plot" class="lab-plot-img">
+                    <p class="plot-caption">Figure 4 &mdash; Scatter plot of Daily Study Hours versus Final Exam Score displaying a strong positive linear correlation.</p>
+                </div>
+            </div>
+
+            <!-- Secondary EDA Plots Grid -->
+            <h4 class="table-title" style="margin-top: 2rem;">Additional Feature Explorations &amp; Correlation Matrix</h4>
+            <div class="plots-grid">
+                <div class="plot-box">
+                    <div class="plot-header"><h4>Attendance vs. Exam Score</h4></div>
+                    <img id="plot-attendance-exam" src="/static/plots/attendance_vs_exam.png" alt="Attendance vs Exam Score" class="lab-plot-img">
+                    <p class="plot-caption">Positive trend between classroom attendance rate and final examination grade.</p>
+                </div>
+                <div class="plot-box">
+                    <div class="plot-header"><h4>Previous Score vs. Exam Score</h4></div>
+                    <img id="plot-previous-exam" src="/static/plots/previous_vs_exam.png" alt="Previous Score vs Exam Score" class="lab-plot-img">
+                    <p class="plot-caption">Prior academic foundation strongly supports future exam outcome.</p>
+                </div>
+                <div class="plot-box">
+                    <div class="plot-header"><h4>Sleep Hours vs. Exam Score</h4></div>
+                    <img id="plot-sleep-exam" src="/static/plots/sleep_vs_exam.png" alt="Sleep Hours vs Exam Score" class="lab-plot-img">
+                    <p class="plot-caption">Adequate sleep duration (7&ndash;8 hours) ensures optimal cognitive performance.</p>
+                </div>
+                <div class="plot-box">
+                    <div class="plot-header"><h4>Feature Correlation Matrix</h4></div>
+                    <img id="plot-correlation-heatmap" src="/static/plots/correlation_heatmap.png" alt="Feature Correlation Heatmap" class="lab-plot-img">
+                    <p class="plot-caption">Pearson correlation coefficients among all inputs and target variable.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 4 — MODEL TRAINING -->
+        <section id="step4" class="section-card step-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 4</span>
+                <div>
+                    <h2 class="step-title">Model Training (Linear Regression)</h2>
+                    <p class="step-subtitle">Training the Multiple Linear Regression model with an 80/20 train-test split.</p>
+                </div>
+            </div>
+
+            <div class="training-top-bar">
+                <div class="training-meta">
+                    <span class="meta-tag"><strong>Algorithm:</strong> Linear Regression (OLS)</span>
+                    <span class="meta-tag"><strong>Training Samples:</strong> <span id="train-samples">160 (80%)</span></span>
+                    <span class="meta-tag"><strong>Testing Samples:</strong> <span id="test-samples">40 (20%)</span></span>
+                    <span class="meta-tag"><strong>Random State:</strong> 42</span>
+                </div>
+                <button id="btn-retrain" class="btn btn-secondary" onclick="retrainModel()">
+                    <span class="btn-icon">&#x21bb;</span> Retrain Model
+                </button>
+            </div>
+
+            <!-- Training Status Banner -->
+            <div class="status-banner success-banner" id="training-status-box">
+                <span class="status-icon">&check;</span>
+                <div id="training-status-text">Model Training Completed Successfully &bull; Serialized to models/exam_score_model.pkl</div>
+            </div>
+
+            <!-- Mathematical Equation Box -->
+            <div class="equation-box">
+                <div class="eq-label">Fitted Multiple Linear Regression Equation:</div>
+                <div class="math-formula" id="model-equation-display">
+                    Exam Score = &beta;<sub>0</sub> + &beta;<sub>1</sub>(Study_Hours) + &beta;<sub>2</sub>(Attendance) + &beta;<sub>3</sub>(Previous_Score) + &beta;<sub>4</sub>(Sleep_Hours)
+                </div>
+            </div>
+
+            <!-- Learned Parameters Table -->
+            <div class="table-responsive" style="margin-top: 1.5rem;">
+                <h4 class="table-title">Learned Model Parameters (Weights &amp; Intercept)</h4>
+                <table class="lab-table" id="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Feature Name</th>
+                            <th>Learned Coefficient (&beta;)</th>
+                            <th>Impact Interpretation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="params-tbody">
+                        <tr><td colspan="4" class="text-center">Loading model parameters...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- STEP 5 — EXAM SCORE PREDICTION -->
+        <section id="step5" class="section-card step-section prediction-highlight-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 5</span>
+                <div>
+                    <h2 class="step-title">Exam Score Prediction</h2>
+                    <p class="step-subtitle">Enter student academic and lifestyle metrics to compute the expected numerical exam score.</p>
+                </div>
+            </div>
+
+            <!-- Presets Row -->
+            <div class="presets-container">
+                <span class="presets-title">Quick Presets:</span>
+                <button type="button" class="preset-btn" onclick="applyPreset(5, 85, 70, 7)">Default Student (5h, 85%, 70, 7h)</button>
+                <button type="button" class="preset-btn" onclick="applyPreset(8.5, 96, 90, 8)">High Achiever (8.5h, 96%, 90, 8h)</button>
+                <button type="button" class="preset-btn preset-btn-fail" onclick="applyPreset(0, 50, 45, 8)">Zero Study Case (0h, 50%, 45, 8h)</button>
+                <button type="button" class="preset-btn preset-btn-fail" onclick="applyPreset(1.5, 55, 40, 6)">Struggling Student (1.5h, 55%, 40, 6h)</button>
+            </div>
+
+            <div class="prediction-layout">
+                <!-- Interactive Input Form -->
+                <div class="prediction-form-card">
+                    <h3 class="box-title">Student Parameters Input Form</h3>
+                    <form id="prediction-form" onsubmit="handlePrediction(event)">
+                        
+                        <div class="form-group">
+                            <label for="input-study" class="form-label">
+                                <span>1. Study Hours (Daily)</span>
+                                <span class="range-hint">Range: 0 &ndash; 24 hrs</span>
+                            </label>
+                            <div class="input-with-unit">
+                                <input type="number" id="input-study" name="study_hours" class="form-input" min="0" max="24" step="0.1" value="5.0" required>
+                                <span class="unit-badge">hrs/day</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-attendance" class="form-label">
+                                <span>2. Attendance Percentage</span>
+                                <span class="range-hint">Range: 0 &ndash; 100 %</span>
+                            </label>
+                            <div class="input-with-unit">
+                                <input type="number" id="input-attendance" name="attendance" class="form-input" min="0" max="100" step="0.5" value="85.0" required>
+                                <span class="unit-badge">%</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-previous" class="form-label">
+                                <span>3. Previous Exam Score</span>
+                                <span class="range-hint">Range: 0 &ndash; 100 marks</span>
+                            </label>
+                            <div class="input-with-unit">
+                                <input type="number" id="input-previous" name="previous_score" class="form-input" min="0" max="100" step="0.5" value="70.0" required>
+                                <span class="unit-badge">marks</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-sleep" class="form-label">
+                                <span>4. Sleep Hours (Nightly)</span>
+                                <span class="range-hint">Range: 0 &ndash; 24 hrs</span>
+                            </label>
+                            <div class="input-with-unit">
+                                <input type="number" id="input-sleep" name="sleep_hours" class="form-input" min="0" max="24" step="0.5" value="7.0" required>
+                                <span class="unit-badge">hrs/night</span>
+                            </div>
+                        </div>
+
+                        <div id="prediction-error" class="form-error-msg" style="display: none;"></div>
+
+                        <button type="submit" id="btn-predict" class="btn btn-primary btn-large">
+                            <span class="btn-icon">&#x25B6;</span> Predict Exam Score
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Prediction Output Card -->
+                <div class="prediction-result-card">
+                    <h3 class="box-title">Model Prediction Output</h3>
+                    
+                    <div class="result-display-box" id="result-display-box">
+                        <div class="result-header-badge">Predicted Exam Score</div>
+                        <div class="score-large" id="predicted-score-value">71.18</div>
+                        <div class="score-max">out of 100.00 marks</div>
+                        
+                        <!-- Performance Category Badge -->
+                        <div class="perf-badge-wrapper">
+                            <span class="perf-badge perf-good" id="grade-badge">First Class / Good (71.18 Marks)</span>
+                        </div>
+
+                        <!-- Score Progress Indicator -->
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill" id="score-bar-fill" style="width: 71.18%;"></div>
+                        </div>
+                        <div class="score-scale">
+                            <span>0 (Min)</span>
+                            <span class="scale-fail">40 (Pass Mark)</span>
+                            <span>70 (Good)</span>
+                            <span>100 (Max)</span>
+                        </div>
+
+                        <div class="result-details">
+                            <div class="res-detail-item">
+                                <span class="res-label">Status:</span>
+                                <span class="res-val" id="res-status-text">Expected Exam Score calculated from trained Linear Regression model.</span>
+                            </div>
+                            <div class="res-detail-item">
+                                <span class="res-label">Database Logging:</span>
+                                <span class="res-val status-active" id="res-db-log">Logged into SQLite Database (Record ID: #1)</span>
+                            </div>
+                            <div class="res-detail-item">
+                                <span class="res-label">Calculation Time:</span>
+                                <span class="res-val" id="res-timestamp">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 6 — MODEL EVALUATION -->
+        <section id="step6" class="section-card step-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 6</span>
+                <div>
+                    <h2 class="step-title">Model Evaluation (Testing Dataset)</h2>
+                    <p class="step-subtitle">Evaluating regression accuracy on unseen 20% test samples (40 records).</p>
+                </div>
+            </div>
+
+            <!-- 4 Metric Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-badge">MAE</div>
+                    <div class="metric-name">Mean Absolute Error</div>
+                    <div class="metric-value" id="metric-mae">--</div>
+                    <div class="metric-desc">Average magnitude of errors in marks.</div>
+                    <div class="metric-formula">$$\text{MAE} = \frac{1}{n}\sum |y_i - \hat{y}_i|$$</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-badge">MSE</div>
+                    <div class="metric-name">Mean Squared Error</div>
+                    <div class="metric-value" id="metric-mse">--</div>
+                    <div class="metric-desc">Average squared difference between actual and predicted.</div>
+                    <div class="metric-formula">$$\text{MSE} = \frac{1}{n}\sum (y_i - \hat{y}_i)^2$$</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-badge">RMSE</div>
+                    <div class="metric-name">Root Mean Squared Error</div>
+                    <div class="metric-value" id="metric-rmse">--</div>
+                    <div class="metric-desc">Standard deviation of residuals in score marks.</div>
+                    <div class="metric-formula">$$\text{RMSE} = \sqrt{\text{MSE}}$$</div>
+                </div>
+
+                <div class="metric-card highlight-metric">
+                    <div class="metric-badge">R&sup2; Score</div>
+                    <div class="metric-name">Coefficient of Determination</div>
+                    <div class="metric-value" id="metric-r2">--</div>
+                    <div class="metric-desc">Proportion of variance explained by model.</div>
+                    <div class="metric-formula">$$R^2 = 1 - \frac{\text{SS}_{\text{res}}}{\text{SS}_{\text{tot}}}$$</div>
+                </div>
+            </div>
+
+            <!-- Evaluation Visualizations -->
+            <div class="plots-grid" style="margin-top: 2rem;">
+                <div class="plot-box">
+                    <div class="plot-header"><h4>Actual vs. Predicted Exam Score (Test Set)</h4></div>
+                    <img id="plot-actual-pred" src="/static/plots/actual_vs_predicted.png" alt="Actual vs Predicted Exam Score" class="lab-plot-img">
+                    <p class="plot-caption">Figure 11 &mdash; Actual test scores plotted against model predictions with ideal 45&deg; reference line ($y = x$).</p>
+                </div>
+                <div class="plot-box">
+                    <div class="plot-header"><h4>Residuals / Error Analysis Plot</h4></div>
+                    <img id="plot-residuals" src="/static/plots/residual_plot.png" alt="Residuals Plot" class="lab-plot-img">
+                    <p class="plot-caption">Distribution of prediction errors $(y_{\text{test}} - y_{\text{pred}})$ around the zero-error baseline.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 7 — PREDICTION HISTORY -->
+        <section id="step7" class="section-card step-section">
+            <div class="step-header">
+                <span class="step-badge">STEP 7</span>
+                <div>
+                    <h2 class="step-title">Prediction History (SQLite3 Database)</h2>
+                    <p class="step-subtitle">Persistent SQLite records stored automatically in <code>database/predictions.db</code>.</p>
+                </div>
+            </div>
+
+            <div class="history-controls">
+                <div class="history-info">
+                    <strong>Total Stored Queries:</strong> <span id="history-count">0</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="fetchPredictionHistory()">
+                        <span class="btn-icon">&#x21bb;</span> Refresh History
+                    </button>
+                    <button class="btn btn-danger-outline" onclick="clearPredictionHistory()">
+                        <span class="btn-icon">&times;</span> Clear History
+                    </button>
+                </div>
+            </div>
+
+            <!-- Prediction History Table -->
+            <div class="table-responsive">
+                <table class="lab-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th># ID</th>
+                            <th>Study Hours (hrs)</th>
+                            <th>Attendance (%)</th>
+                            <th>Previous Score</th>
+                            <th>Sleep Hours (hrs)</th>
+                            <th class="target-col">Predicted Exam Score</th>
+                            <th>Logged Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <tr><td colspan="7" class="text-center">No predictions recorded yet. Use the prediction form above.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FINAL LAB RESULT STATEMENT -->
+        <section id="result" class="section-card result-section">
+            <div class="result-statement-card">
+                <div class="result-badge">LABORATORY EXPERIMENT CONCLUSION</div>
+                <h3 class="result-title">Result</h3>
+                <blockquote class="result-quote">
+                    &ldquo;The Study Time &rarr; Exam Score Prediction system was successfully implemented using Machine Learning. The system preprocesses student data, performs exploratory data analysis, trains a Linear Regression model, evaluates the model using MAE, MSE, RMSE and R&sup2; Score, predicts an expected exam score for new student inputs, and stores prediction history using SQLite.&rdquo;
+                </blockquote>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Lab Record Footer -->
+    <footer class="academic-footer">
+        <div class="container footer-container">
+            <div class="footer-left">
+                <strong>Machine Learning Mini-Project</strong> &bull; Study Time &rarr; Exam Score Prediction
+            </div>
+            <div class="footer-right">
+                Developed for Local Execution in Visual Studio Code &bull; Complete Offline Support
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
